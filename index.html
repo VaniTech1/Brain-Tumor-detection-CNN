@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Login and Prediction</title>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            line-height: 1.5;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            height: 100vh;
+            transition: background-image 0.5s ease-in-out;
+            overflow: hidden;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        /* Doctor Login Section */
+        #loginPage {
+            background-image: url('/static/images/bg1.jpg');
+            background-size: cover;
+            background-position: center;
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.7);
+            /* Slight overlay for readability */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            animation: zoomIn 1s ease-in-out;
+        }
+
+        /* Patient Prediction Section */
+        #patientPage {
+            background-image: url('/static/images/bg2.jpeg');
+            background-size: cover;
+            background-position: center;
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.7);
+            /* Slight overlay for readability */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            animation: zoomIn 1s ease-in-out;
+        }
+
+        .infrared {
+            filter: invert(1) grayscale(100%) contrast(200%) brightness(50%);
+        }
+
+        /* To display heatmap over the original image */
+        .heatmap-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .heatmap-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.6;
+        }
+
+        /* Welcome Heading Styling */
+        h1 {
+            text-align: center;
+            color: transparent;
+            /* Text is transparent to reveal the gradient */
+            background-image: linear-gradient(90deg, #007bff, #6a11cb, #ff6a00);
+            background-clip: text;
+            -webkit-background-clip: text;
+            /* Ensure compatibility with WebKit browsers */
+            font-size: 2.5em;
+            font-weight: bold;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            animation: zoomIn 0.5s ease-in-out;
+        }
+
+        /* Gradient Animation */
+        @keyframes gradientAnimation {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        /* Fade-in Animation */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        h2 {
+            text-align: center;
+            color: #444;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            animation: slideDown 1.2s ease-in-out;
+        }
+
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+
+        input[type="text"],
+        input[type="file"],
+        input[type="date"],
+        input[type="password"],
+        select,
+        button {
+            width: 90%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 10px rgba(0, 123, 255, 0.3);
+        }
+
+        button {
+            background-color: #FF00FF;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background-color: #ff0000;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        /* Hidden Pages */
+        .hidden {
+            display: none;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes zoomIn {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* Output Styling */
+        .output {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 1s ease-in-out;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="navbar hidden" id="navbar">
+        <span class="menu-toggle" onclick="toggleMenu()">☰</span>
+        <div class="menu-items">
+            <a href="#" onclick="showSection('welcomePage1')">Home</a>
+            <a href="#" onclick="showSection('patientPage')">Patient Details</a>
+            <a href="#" onclick="showSection('predictionPage')">Prediction</a>
+        </div>
+    </div>
+
+    <style>
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #007bff;
+            padding: 10px 5%;
+            color: white;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .menu-toggle {
+            display: none;
+            font-size: 1.5em;
+            cursor: pointer;
+            color: white;
+        }
+
+        .menu-items {
+            display: flex;
+            gap: 20px;
+        }
+
+        .menu-items a {
+            color: white;
+            text-decoration: none;
+            font-size: 1em;
+            font-weight: bold;
+            transition: color 0.3s ease;
+        }
+
+        .menu-items a:hover {
+            color: #ff6a00;
+        }
+
+        .hidden {
+            display: none !important;
+            /* Ensure it is completely hidden */
+        }
+
+
+
+        @media screen and (max-width: 768px) {
+            .menu-toggle {
+                display: block;
+            }
+
+            .menu-items {
+                display: none;
+                flex-direction: column;
+                background-color: #007bff;
+                position: absolute;
+                top: 50px;
+                right: 5%;
+                width: 90%;
+                padding: 10px;
+                border-radius: 5px;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            }
+
+            .menu-items.show {
+                display: flex;
+            }
+
+            .menu-items a {
+                margin: 10px 0;
+                text-align: center;
+            }
+        }
+    </style>
+
+    <script>
+        function toggleMenu() {
+            const menu = document.querySelector('.menu-items');
+            menu.classList.toggle('show');
+        }
+
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.container').forEach(section => {
+                section.classList.add('hidden');
+            });
+
+            // Show the selected section
+            document.getElementById(sectionId).classList.remove('hidden');
+        }
+    </script>
+
+
+    <div class="container" id="welcomePage">
+        <h1>Welcome to Neurological Department</h1>
+        <button onclick="proceedToLogin()">Proceed to Login</button>
+    </div>
+
+    <div class="container hidden" id="welcomePage1">
+        <h1>Welcome to Neurological Department</h1>
+    </div>
+
+
+    <div class="container hidden" id="loginPage">
+        <h2>Login</h2>
+        <label for="username">Username</label>
+        <input type="text" id="username" placeholder="Enter your username" required>
+
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="Enter your password" required>
+
+        <button onclick="login()">Login</button>
+    </div>
+
+    <script>
+        function proceedToLogin() {
+            document.body.style.backgroundImage = "url('/static/images/bgg1.jpg')";
+            // Hide Welcome Page and Show Login Page
+
+            document.getElementById('welcomePage').classList.add('hidden');
+            document.getElementById('loginPage').classList.remove('hidden');
+
+        }
+
+        function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (username === "admin" && password === "admin@123") {
+                alert("Login successful! Proceeding to patient details...");
+                // Redirect or load next page logic here
+
+            } else {
+                alert("Invalid credentials. Please try again.");
+            }
+        }
+    </script>
+
+    <div class="container hidden" id="patientPage">
+        <h2>Patient Details</h2>
+        <label for="patientName">Patient Name</label>
+        <input type="text" id="patientName" placeholder="Enter patient's name" required>
+
+        <label for="dob">Date of Birth</label>
+        <input type="date" id="dob" name="dob" max="" required>
+        <label for="bloodGroup">Blood Group</label>
+        <select id="bloodGroup" required>
+            <option value="" disabled selected>Select Blood Group</option>
+            <option value="A+">A+</option>
+            <option value="A-">A-</option>
+            <option value="B+">B+</option>
+            <option value="B-">B-</option>
+            <option value="O+">O+</option>
+            <option value="O-">O-</option>
+            <option value="AB+">AB+</option>
+            <option value="AB-">AB-</option>
+        </select>
+
+        <label for="patientImage">Upload Patient MRI Image</label>
+        <input type="file" id="patientImage" accept="image/*" required>
+
+        <button onclick="submitDetails()">Submit Details</button>
+    </div>
+
+    <div class="container hidden" id="predictionPage">
+        <h2>Prediction Result</h2>
+        <div id="patientDetails" class="output"></div>
+        <div id="predictionOutput" class="output hidden"></div>
+        <button onclick="predict()">Get Prediction</button>
+        <button id="button1" class="hidden" onclick="backToPatientDetails()">Next Patient Details</button>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            document.body.style.backgroundImage = "url('/static/images/download1.jpeg')";
+            const today = new Date().toISOString().split('T')[0]; // Get today's date in YYYY-MM-DD format
+            document.getElementById('dob').setAttribute('max', today); // Set login page background
+
+
+            window.login = function () {
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+
+                if (username === "admin" && password === "admin@123") {
+                    alert("Login successful! Proceeding to patient details...");
+
+                    // Show the navbar
+                    document.getElementById('navbar').classList.remove('hidden');
+                    document.getElementById('loginPage').classList.add('hidden');
+                    document.getElementById('patientPage').classList.remove('hidden');
+                    document.body.style.backgroundImage = "url('/static/images/bgg2.jpg')"; // Switch background
+                } else {
+                    alert("Invalid credentials. Please try again.");
+                }
+            };
+
+            window.submitDetails = function () {
+                const patientName = document.getElementById('patientName').value;
+                const dob = document.getElementById('dob').value;
+                const bloodGroup = document.getElementById('bloodGroup').value;
+                const patientImage = document.getElementById('patientImage');
+
+                if (!patientName || !dob || !bloodGroup || !patientImage.files.length) {
+                    alert("Please fill in all details and upload an image.");
+                    return;
+                }
+
+                const dobFormatted = new Date(dob).toLocaleDateString("en-GB");
+                const imageUrl = URL.createObjectURL(patientImage.files[0]);
+
+
+                document.getElementById('patientDetails').innerHTML = `
+                <strong>Name:</strong> ${patientName}<br>
+                <strong>Date of Birth:</strong> ${dobFormatted}<br>
+                <strong>Blood Group:</strong> ${bloodGroup}<br>
+                <strong>Uploaded Image:</strong> 
+                <img src="${URL.createObjectURL(patientImage.files[0])}" alt="Patient MRI" 
+                     style="display: block; margin: 20px auto; width: 50%; max-width: 300px; 
+                     border: 1px solid #ccc; border-radius: 5px;">
+            `;
+                document.getElementById('patientPage').classList.add('hidden');
+                document.getElementById('predictionPage').classList.remove('hidden');
+                document.body.style.backgroundImage = "url('/static/images/bgg2.jpg')";
+            };
+
+            window.predict = function () {
+                const imageInput = document.getElementById('patientImage').files[0];
+                const outputDiv = document.getElementById('predictionOutput');
+                const predictButton = document.querySelector("#predictionPage button");
+
+                const formData = new FormData();
+                formData.append("image", imageInput);
+
+                fetch("http://127.0.0.1:5001/predict", {
+                    method: "POST",
+                    body: formData
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        outputDiv.classList.remove('hidden');
+                        outputDiv.innerHTML = `
+                    <strong>Prediction:</strong> ${data.prediction}<br>
+                    <strong>Confidence:</strong> ${data.confidence.toFixed(2)}%<br>
+                    <strong>Description:</strong> ${data.description || 'No description available'}
+                `;
+
+                        // Hide the "Get Prediction" button after showing the result
+                        predictButton.classList.add('hidden');
+                        button1.classList.remove('hidden');
+                        const imageElement = document.getElementById('patientImage');
+                        imageElement.classList.add('infrared');
+
+                    })
+                    .catch(error => {
+                        console.error("Error during prediction:", error);
+                        alert("There was an issue connecting to the prediction service. Please try again later.");
+
+
+                    });
+            };
+
+            window.backToPatientDetails = function () {
+                // Hide prediction page and show patient details page
+                document.getElementById('predictionPage').classList.add('hidden');
+                document.getElementById('patientPage').classList.remove('hidden');
+
+                // Reset the Patient Details form
+                document.getElementById('patientName').value = '';
+                document.getElementById('dob').value = '';
+                document.getElementById('bloodGroup').value = '';
+                document.getElementById('patientImage').value = ''; // Clear the uploaded image
+
+                // Clear previous output
+                document.getElementById('patientDetails').innerHTML = '';
+                document.getElementById('predictionOutput').innerHTML = '';
+
+                // Reset Prediction Button visibility
+                document.getElementById('predictionPage').querySelector('button').classList.remove('hidden');  // Show the Prediction Button again
+
+                // Hide "Next Patient Details" button
+                document.getElementById('button1').classList.add('hidden');
+
+                // Set background image again if needed
+                document.body.style.backgroundImage = "url('/static/images/bgg2.jpg')";
+            };
+
+
+
+        });
+    </script>
+</body>
+
+</html>
